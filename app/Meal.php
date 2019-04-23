@@ -1,0 +1,183 @@
+<?php
+
+namespace App;
+
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Builder;
+
+class Meal extends Model
+{
+    const BREAKFAST_START_HOUR = 6;
+    const BREAKFAST_END_HOUR = 9;
+    const LUNCH_START_HOUR = 11;
+    const LUNCH_END_HOUR = 14;
+    const DINNER_START_HOUR = 17;
+    const DINNER_END_HOUR = 20;
+
+    protected $fillable = [
+        'description', 'eaten_at', 'calories', 'user_id',
+    ];
+
+    protected $casts = [
+        'eaten_at' => 'datetime',
+        'meal_date' => 'date',
+        'calories' => 'int',
+        'expected_calories' => 'int',
+        'total_calories' => 'int',
+    ];
+
+    // RELATIONS
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    // SCOPES
+    /**
+     * Optionally constrain by start date
+     *
+     * @param Builder $query
+     * @param \DateTimeInterface|string|null $start
+     * @return Builder
+     */
+    public function scopeByStartDate(Builder $query, $start)
+    {
+        return $start ? $query->whereDate('eaten_at', '>=', $start) : $query;
+    }
+
+    /**
+     * Optionally constrain by end date
+     *
+     * @param Builder $query
+     * @param \DateTimeInterface|string|null $end
+     * @return Builder
+     */
+    public function scopeByEndDate(Builder $query, $end)
+    {
+        return $end ? $query->whereDate('eaten_at', '<=', $end) : $query;
+    }
+
+    /**
+     * Optionally constrain by start time
+     *
+     * @param Builder $query
+     * @param \DateTimeInterface|string|null $start
+     * @return Builder
+     */
+    public function scopeByStartTime(Builder $query, $start)
+    {
+        return $start ? $query->whereTime('eaten_at', '>=', $start) : $query;
+    }
+
+    /**
+     * Optionally constrain by end time
+     *
+     * @param Builder $query
+     * @param \DateTimeInterface|string|null $end
+     * @return Builder
+     */
+    public function scopeByEndTime(Builder $query, $end)
+    {
+        return $end ? $query->whereTime('eaten_at', '<=', $end) : $query;
+    }
+
+    /**
+     * Optionally constrain by start/end dates and/or start/end times
+     *
+     * @param Builder $query
+     * @param array $filter
+     * @return mixed
+     */
+    public function scopeDateTimeFiltered(Builder $query, array $filter = [])
+    {
+        return $query->byStartDate(self::parseDateTime($filter['start_date'] ?? null))
+            ->byEndDate(self::parseDateTime($filter['end_date'] ?? null))
+            ->byStartTime(self::parseDateTime($filter['start_time'] ?? null))
+            ->byEndTime(self::parseDateTime($filter['end_time'] ?? null));
+    }
+
+    /**
+     * Restrict meals to specified user
+     *
+     * @param Builder $query
+     * @param User $user
+     * @return Builder
+     */
+    public function scopeByUser(Builder $query, User $user)
+    {
+        return $query->where('meals.user_id', $user->id);
+    }
+
+    /**
+     * Include actual daily calories totals and user daily limits in results
+     *
+     * @param Builder $query
+     * @return Builder|\Illuminate\Database\Query\Builder
+     */
+    public function scopeWithDailyCalorieTotals(Builder $query)
+    {
+        $subQuery = Meal::query()
+            ->join('users', 'users.id', '=', 'meals.user_id')
+            ->groupBy(['user_id', \DB::raw('date(eaten_at)')])
+            ->selectRaw('user_id, expected_calories, date(eaten_at) as meal_date, sum(calories) as total_calories');
+
+        return $query->joinSub($subQuery, 'totals', function ($join) {
+            $join->on('totals.user_id', '=', 'meals.user_id')
+                ->whereRaw('date(meals.eaten_at) = totals.meal_date');
+            });
+    }
+
+    // ATTRIBUTES
+    public function setEatenAtAttribute($val)
+    {
+        $this->attributes['eaten_at'] = self::parseDateTime($val);
+    }
+
+    public function getIsBreakfastAttribute()
+    {
+        return $this->isEatenBetweenHours(self::BREAKFAST_START_HOUR, self::BREAKFAST_END_HOUR);
+    }
+
+    public function getIsLunchAttribute()
+    {
+        return $this->isEatenBetweenHours(self::LUNCH_START_HOUR, self::LUNCH_END_HOUR);
+    }
+
+    public function getIsDinnerAttribute()
+    {
+        return $this->isEatenBetweenHours(self::DINNER_START_HOUR, self::DINNER_END_HOUR);
+    }
+
+    public function getIsSnackAttribute()
+    {
+        return !($this->is_breakfast || $this->is_lunch || $this->is_dinner);
+    }
+
+    // UTILITY METHODS
+    private function isEatenBetweenHours($start, $end): bool
+    {
+        $hour = $this->eaten_at->hour;
+        return ($hour >= $start) && ($hour < $end);
+    }
+
+    public static function parseDateTime($value)
+    {
+        if ($value) {
+            if ($value instanceof \DateTimeInterface) {
+                return $value;
+            }
+
+            // NOTE:  We look for and handle the format generated by the vue-datetime
+            // control to avoid parsing issues by Laravel not expecting this format
+            if (preg_match('/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z/', $value)) {
+                return Carbon::createFromFormat('Y-m-d\TH:i:s.v\Z', $value, new \DateTimeZone('UTC'));
+            }
+
+            return Carbon::parse($value);
+        }
+
+        return null;
+    }
+}
