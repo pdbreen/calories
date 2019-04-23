@@ -26,7 +26,7 @@ class UpdateMealRequest extends FormRequest
         return [
             'description' => 'nullable',
             'calories' => 'nullable|integer|min:1',
-            'eaten_at' => 'nullable|date_format:"Y-m-d H:i:s"',
+            'eaten_at' => 'nullable|date',
         ];
     }
 }

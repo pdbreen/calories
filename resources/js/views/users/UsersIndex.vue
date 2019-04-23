@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-wrap justify-center">
+    <div class="flex flex-wrap justify-center px-2">
         <div class="w-full max-w-md">
             <div v-if="errorObject">
                 <ErrorList :error-object="errorObject"/>

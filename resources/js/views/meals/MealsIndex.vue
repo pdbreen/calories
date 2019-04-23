@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-wrap justify-center">
+    <div class="flex flex-wrap justify-center px-2">
 
         <div class="w-full max-w-md">
             <div v-if="errorObject">
@@ -15,7 +15,7 @@
                 </router-link>
             </div>
 
-            <div class="flex">
+            <div class="flex flex-col sm:flex-row">
                 <div class="mr-4 mb-4">
                     <label class="block text-grey-darker text-sm font-bold mb-2">Start date</label>
                     <datetime
@@ -28,7 +28,7 @@
                             input-class="shadow appearance-none border rounded py-2 px-3 text-grey-darker leading-tight focus:outline-none focus:shadow-outline">
                     </datetime>
                 </div>
-                <div class="ml-4 mb-4">
+                <div class="mb-4">
                     <label class="block text-grey-darker text-sm font-bold mb-2">End date</label>
                     <datetime class="flex"
                               type="date"
@@ -41,7 +41,7 @@
                     </datetime>
                 </div>
             </div>
-            <div class="flex">
+            <div class="flex flex-col sm:flex-row">
                 <div class="mr-4 mb-4">
                     <label class="block text-grey-darker text-sm font-bold mb-2">Start time</label>
                     <datetime
@@ -55,7 +55,7 @@
                             input-class="shadow appearance-none border rounded py-2 px-3 text-grey-darker leading-tight focus:outline-none focus:shadow-outline">
                     </datetime>
                 </div>
-                <div class="ml-4 mb-4">
+                <div class="mb-4">
                     <label class="block text-grey-darker text-sm font-bold mb-2">End time</label>
                     <datetime
                             type="time"
