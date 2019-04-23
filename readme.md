@@ -59,11 +59,11 @@ The full suite of tests can be run with the following command in the project roo
 
 The core packages used to implement this SPA are as follows:
 * **Laravel 5.8** - database models, REST controllers and test scaffolding
-* **Laravel Passport** - token grants for user API authorization
+* **Laravel Passport** - (https://laravel.com/docs/5.8/passport) token grants for user API authorization
 * **Vue, Vue Router, Vuex** - front end components and SPA functionality
-* **vuelidate** - front end validation
-* **vue-datetime** - date/time picker 
-* **Tailwind CSS** - front end CSS styling
+* **vuelidate** - (https://vuelidate.netlify.com/) front end validation
+* **vue-datetime** - (https://github.com/mariomka/vue-datetime) date/time picker 
+* **Tailwind CSS** - (https://tailwindcss.com/docs/what-is-tailwind/) front end CSS styling
 
 ### Backend Road Map
 
@@ -94,7 +94,7 @@ Vue component.  The exception is that create/edit of both users and meals use a 
 Vue components for item lists leverage a shared `js/mixins/PageDataMixin.js`.  Similarly, create/edit views
 make use of a shared `js/mixins/EditDataMixin.js`
 
-A handful of form inputs were factored into shared Vue components to facilitate common layout, validation and
+A handful of common form inputs were factored into shared Vue components to facilitate common layout, validation and
 error message display.  These can be found in the `js/components` directory.
 
 ### NOTES
@@ -104,4 +104,4 @@ discussion to understand desired handling / requirements.
 * User management is restricted so that only Admins can create/modify other Admins.  User managers can still
 see Admin users, but they cannot modify them.  User managers can create/modify other User Managers (as well
 as ordinary users).
-* Some 
+* Admin UI could be enhanced to show user in context when viewing / editing other users meals
