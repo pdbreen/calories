@@ -18,6 +18,7 @@ cp .env.example .env
 composer install
 yarn install
 yarn dev
+touch database/database.sqlite
 php artisan migrate:fresh --seed
 php artisan passport:install
 ```
